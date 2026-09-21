@@ -25,3 +25,28 @@ aside{display:flex;flex-direction:column;gap:20px;min-width:0}
 #result-dialog[data-winner="2"] .result-mark i{background:#ede7da;border:1px solid #c8bca6}
 #result-dialog[data-winner="0"] .result-mark i:nth-child(even){background:#ede7da;border:1px solid #c8bca6}
 @media(max-width:800px){.layout{gap:22px}.players{min-height:72px}.record{min-height:160px}.panel{padding:20px}.panel h2{font-size:24px}.rules{padding:0 4px}#result-dialog{padding:30px 22px}#result-dialog h2{font-size:30px}}
+
+/* Size the desktop board by both window height and width, not the page width alone. */
+@media(min-width:801px){
+ header,main{max-width:calc(clamp(320px,100dvh - 380px,560px) + 400px)}
+ header{padding-top:16px;padding-bottom:16px}
+ .intro{margin:8px 0 20px}
+ h1{font-size:48px}
+ .intro .eyebrow{margin-bottom:8px}
+ .players{min-height:60px;padding:9px 16px;margin-bottom:12px}
+ .board-wrap{padding:10px}
+ .board-footer{margin:10px 2px}
+ #status{min-height:32px;margin-top:8px}
+ .layout{align-items:start}
+ .record{flex:none;min-height:140px}
+ aside{gap:16px}
+ .panel{padding:18px}
+ .panel h2{font-size:22px;margin-bottom:14px}
+ .panel .eyebrow{margin-bottom:10px}
+ .actions{margin-top:12px}
+ #history{max-height:150px}
+ footer{margin-top:20px}
+}
+@media(min-width:601px) and (max-width:800px){
+ main,header{max-width:600px}
+}
