@@ -28,7 +28,7 @@ export async function handle(request, env, upstreamFetch = fetch) {
   } catch {return respond(400,'Invalid input');}
   const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),35000);
   try {
-    const response=await upstreamFetch(upstream,{method:'POST',headers:{'Content-Type':'application/json','Authorization':authorization},body:JSON.stringify(input),signal:controller.signal,redirect:'error'});
+    const response=await upstreamFetch(upstream,{method:'POST',headers:{'Content-Type':'application/json','Authorization':authorization},body:JSON.stringify(input),signal:controller.signal,redirect:'manual'});
     if(!response.ok)return respond([401,403,429,529].includes(response.status)?response.status:502,'Evaluation service error');
     const result=validateResult(await response.json());
     return new Response(JSON.stringify({model:result.model,answers:result.answers,usage:result.usage}),{headers});
