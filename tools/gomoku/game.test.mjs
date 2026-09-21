@@ -110,3 +110,12 @@ test('enriched context never replaces the legal move Jev actually selected',()=>
  assert.equal(req.questions.move.criteria[bad].consequences.blackContinuousFour.status,'PROVEN_FORCED_WIN');
  assert.equal(readMove({answers:{move:{type:'choice',choice:bad,confidence:.8}}},req).index,83);
 });
+
+test('copied record contains every move in order, correct outcome and only the current game after undo/reset',async()=>{
+ const {exportRecord}=await import('./game.mjs');const g=new Game();
+ g.history=[0,15,1,16,2,17,3,18,4];
+ const text=exportRecord(g.history);assert.match(text,/黑棋（玩家）获胜；共 9 手/);
+ assert.deepEqual(text.split('\n').filter(x=>/^\d+\./.test(x)),['1. 黑 A1','2. 白 A2','3. 黑 B1','4. 白 B2','5. 黑 C1','6. 白 C2','7. 黑 D1','8. 白 D2','9. 黑 E1']);
+ g.undo();assert.match(exportRecord(g.history),/进行中，轮到黑棋/);assert.doesNotMatch(exportRecord(g.history),/9\. 黑 E1/);
+ g.reset();assert.match(exportRecord(g.history),/共 0 手/);assert.throws(()=>exportRecord([0,0]));
+});

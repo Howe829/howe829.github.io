@@ -130,3 +130,9 @@ export class Game{
  reset(){this.history=[];this.revision++;}
  accept(index,revision){return revision===this.revision&&this.place(index,2);}
 }
+
+export function exportRecord(history){
+ const state=position(history);
+ const result=state.winner===1?'黑棋（玩家）获胜':state.winner===2?'白棋（Jev）获胜':state.draw?'和棋':`进行中，轮到${history.length%2?'白棋（Jev）':'黑棋（玩家）'}`;
+ return ['落子 · Jev 五子棋复盘 v1','规则：15×15 自由五子棋；黑先白后；五子或以上获胜；无禁手。','坐标：A–O 从左到右，1–15 从上到下。','玩家执黑，Jev 执白；每颗白棋由 Jev Choice 选择。',`结果：${result}；共 ${history.length} 手。`,'完整棋谱：',...history.map((i,n)=>`${n+1}. ${n%2?'白':'黑'} ${coordinate(i)}`),'说明：此记录仅包含落子及结果，不包含当时的模型候选、概率或请求上下文。'].join('\n');
+}

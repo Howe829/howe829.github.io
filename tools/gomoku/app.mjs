@@ -1,4 +1,4 @@
-import {Game,coordinate} from './game.mjs';
+import {Game,coordinate,exportRecord} from './game.mjs?v=20260921-copy';
 const $=id=>document.getElementById(id),game=new Game();
 const local=['127.0.0.1','localhost'].includes(location.hostname),endpoint=local?'/api/move':window.GOMOKU_PROXY_URL;
 let selected=null,pending=null,busy=false,failed=false,lastDecision='',focusIndex=112,announcedRevision=-1;
@@ -16,6 +16,7 @@ function render(){
  $('selection').textContent=over?'可查看棋盘，或重新开局':selected!==null?`已选 ${coordinate(selected)}，确认后落子`:busy?'Jev 正在思考…':'点选交叉点，再确认落子';
  $('place').disabled=selected===null||busy||!humanTurn;$('place').textContent=over?'本局结束':busy?'Jev 思考中…':selected!==null?`落子 ${coordinate(selected)}`:'选择一个落点';
  $('undo').disabled=!game.history.length;$('retry').hidden=!failed||busy||!!over;
+ $('copy-game').disabled=!game.history.length;
  $('total').textContent=`${game.history.length} 手`;$('empty-log').hidden=!!game.history.length;
  $('history').replaceChildren(...game.history.map((i,n)=>{const li=document.createElement('li');li.textContent=`${n+1}. ${n%2?'白':'黑'} · ${coordinate(i)}`;return li;}));$('decision').textContent=lastDecision;
  if(winner)status(winner===1?'你赢了！五子连线，漂亮。':'Jev 赢了这局。再来一盘？');else if(draw)status('棋盘已满，这局和棋。');
@@ -44,7 +45,7 @@ async function aiMove(){
  }catch(e){if(game.revision===revision){failed=true;status(e.message,true);}}
  finally{clearTimeout(timer);if(pending===controller){busy=false;pending=null;render();}}
 }
-function cancel(){$('result-dialog').close();announcedRevision=-1;pending?.abort();pending=null;busy=false;failed=false;selected=null;lastDecision='';}
+function cancel(){$('copy-status').textContent='';$('result-dialog').close();announcedRevision=-1;pending?.abort();pending=null;busy=false;failed=false;selected=null;lastDecision='';}
 $('place').onclick=()=>{try{key();}catch(e){status(e.message,true);$('key').focus();return;}if(!endpoint){status('游戏代理尚未配置，请使用本地预览。',true);return;}if(selected===null||busy)return;if(game.place(selected,1)){selected=null;render();if(!game.state.winner&&!game.state.draw)aiMove();}};
 $('retry').onclick=aiMove;
 $('undo').onclick=()=>{cancel();game.undo();status('已撤回上一回合，轮到你。');render();};
@@ -54,3 +55,10 @@ $('play-again').onclick=restart;
 $('view-board').onclick=()=>{$('result-dialog').close();};
 $('connection').textContent=endpoint?`转发代理：${new URL(endpoint,location.href).origin}`:'当前尚未配置公开游戏代理。';
 render();
+
+$('copy-game').onclick=async()=>{
+ const text=exportRecord([...game.history]);
+ try{await navigator.clipboard.writeText(text);$('copy-status').textContent='完整棋谱已复制';}
+ catch{$('copy-status').textContent='请手动复制';$('copy-text').value=text;$('copy-dialog').showModal();$('copy-text').focus();$('copy-text').select();}
+};
+$('close-copy').onclick=()=>$('copy-dialog').close();

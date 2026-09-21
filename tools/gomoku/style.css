@@ -57,3 +57,19 @@ aside{display:flex;flex-direction:column;gap:20px;min-width:0}
 @media(min-width:601px) and (max-width:800px){
  main,header{max-width:600px}
 }
+
+/* The list owns scrolling; record controls stay outside it. */
+.record{flex:none;min-height:0}
+.record-tools{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.icon-button{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--green);flex:none}
+.icon-button:hover:not(:disabled){background:#e9eee5}
+.record-scroll{height:168px;min-height:168px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;margin-top:12px}
+#history{max-height:none;overflow:visible;margin:0;font-size:13px;gap:6px}
+#history li{padding:6px}
+#empty-log{margin:8px 0}
+#copy-status{min-height:18px;font-size:12px;color:var(--green);margin:6px 0 0}
+#decision{margin-top:0;padding-top:6px}
+#copy-dialog{width:min(480px,calc(100vw - 32px));border:1px solid var(--line);border-radius:16px;padding:24px;background:#fffdf8;color:var(--ink)}
+#copy-dialog::backdrop{background:#192d2766}
+#copy-text{width:100%;height:240px;max-height:45dvh;font:14px/1.6 monospace;margin-bottom:12px}
+@media(max-width:800px){.icon-button{width:44px;height:44px}}
