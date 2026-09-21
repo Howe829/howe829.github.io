@@ -2,7 +2,7 @@ import { normalizeKey, evaluate } from './client.mjs';
 import { requestFor, choices, labels } from './evaluation.mjs';
 const $ = id => document.getElementById(id);
 const local = ['localhost','127.0.0.1'].includes(location.hostname);
-const endpoint = window.JEV_PROXY_URL || (local ? '/api/evaluate' : '');
+const endpoint = local ? '/api/evaluate' : (window.JEV_PROXY_URL || '');
 const initial = { expression: $('expression').innerHTML, paternalism: $('paternalism').innerHTML };
 $('route-note').textContent = endpoint ? `转发代理：${new URL(endpoint,location.href).origin}。密钥仅在页面内存中使用，不写入浏览器存储。` : '本站尚未配置转发代理，目前不能发起分析。';
 $('example').onclick = () => { $('sentence').value = 'JEV是这样的回答吗？每次的json格式都不一样？不是ai图？嗯哼？多看看官方文档吧'; reset(); };

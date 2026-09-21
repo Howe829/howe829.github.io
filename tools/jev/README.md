@@ -63,3 +63,6 @@ node --test evaluation.test.mjs client.test.mjs
 用户已授权部署。代理：https://howard-jev-tools.lonely829.workers.dev/api/evaluate 。
 页面：https://howe829.github.io/tools/jev/ 。
 历史验证条目中的“尚未上线”指对应阶段，不代表最新状态。
+
+公开验证：GitHub Pages 已可访问，浏览器经 Cloudflare 代理获得 Jev 401 测试响应，跨域链路正常；12 项功能测试通过。云端真实有效密钥评分与实体手机尚待用户验证。
+本地预览始终使用本地代理，不受公开站点 Origin 白名单影响。
