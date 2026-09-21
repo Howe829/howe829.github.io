@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>话里有话 · Jev 表达分析</title>
+  <meta name="description" content="用 Jev 观察一句话中的情绪、信息与说教感。评价表达，而非定义一个人。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232b5148'/%3E%3Ctext x='8' y='29' font-size='27' fill='white'%3E言%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css"><script src="config.js" defer></script><script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <header><a class="home" href="/">HOWARD’S NOTE <span>／ 小工具</span></a><a href="https://docs.typesafe.ai/introduction/quickstart" target="_blank" rel="noopener noreferrer">由 Jev 驱动 ↗</a></header>
+  <main>
+    <div class="intro"><p class="eyebrow">WORDS, A LITTLE CLEARER</p><h1>话里有话<span>。</span></h1><p>在情绪之外，看见信息。<br class="mobile">也看看一句话，有多少说教感。</p></div>
+    <div class="workspace">
+      <section class="editor panel" aria-labelledby="input-title">
+        <div class="section-head"><h2 id="input-title">01 <span>放进一句话</span></h2><span class="small">只分析表达，不定义人</span></div>
+        <form id="analysis-form">
+          <label for="sentence">想分析的内容</label>
+          <textarea id="sentence" maxlength="5000" required placeholder="粘贴一段对话、评论，或让你有点在意的话……"></textarea>
+          <div class="input-meta"><button type="button" id="example" class="text-button">试试你提供的例句 ↗</button><span id="count">0 / 5000</span></div>
+          <label for="background">补充语境 <span class="optional">可选</span></label>
+          <textarea id="background" maxlength="2000" placeholder="例如：对方是在回答我的技术问题；我们之前讨论了……"></textarea>
+          <div class="connection"><label for="key">你的 TypeSafe API Key</label><input id="key" type="password" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用，刷新后需重新填写" required><p id="route-note" class="small"></p><a class="small" href="https://console.typesafe.ai" target="_blank" rel="noopener noreferrer">获取自己的 API Key ↗</a></div>
+          <button class="submit" id="submit" type="submit">分析这段话 <span>↗</span></button>
+          <p class="small privacy">提交后，文本与密钥经所示代理转发至 TypeSafe。请勿输入私密信息。</p>
+          <p id="status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="results" aria-label="分析结果" aria-live="polite" aria-busy="false">
+        <article class="result panel"><div class="section-head"><h2>02 <span>情绪，还是信息？</span></h2><span class="badge">表达倾向</span></div><div id="expression"><p class="empty-title">情绪和价值，可以同时存在。</p><p class="muted">分析后，查看这段表达的主要倾向与各类概率。</p><div class="placeholder-bars"><i></i><i></i><i></i></div></div></article>
+        <article class="result panel"><div class="section-head"><h2>03 <span>爹味有几分？</span></h2><span class="badge peach">说教感</span></div><div id="paternalism"><p class="empty-title">建议，还是居高临下？</p><p class="muted">结合语境，按「不重 / 还好 / 很重」三档评估。</p><div class="scale"><span>不重</span><span>还好</span><span>很重</span></div></div></article>
+        <p class="footnote">一次模型判断，一种观察角度。结果会受语境影响；模型置信度不等于准确率，信息倾向也不代表事实已核验。</p>
+      </section>
+    </div>
+    <footer><span>少一点标签，多一点理解。</span><span>JEV / TEXT LAB</span></footer>
+  </main>
+</body></html>
