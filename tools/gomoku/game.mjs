@@ -69,11 +69,53 @@ export function tacticalContext(board,index){
  else if(blackForcingReplies.length){outcome='BLACK_CAN_FORCE_WIN_IN_TWO_MOVES';const reply=blackForcingReplies[0];explanation=`WHITE ${coordinate(index)} -> BLACK ${reply.move} -> BLACK threatens wins at ${reply.winningMoves.join(' and ')}. WHITE has no immediate winning reply and can occupy only one winning point; BLACK wins on its following turn.`;}
  return {outcome,explanation,blackImmediateWinningMoves,whiteImmediateWinningMoves,blackForcingReplies};
 }
+// Proof-only continuous-four search; UNKNOWN never means safe. Jev still chooses.
+export function forcingLine(board,attacker,{depth=3,budget={remaining:24}}={}){
+ const defender=3-attacker;
+ function search(b,left){
+  if(budget.remaining<=0)return null;
+  budget.remaining--;
+  const own=threats(b,attacker),opponent=threats(b,defender);
+  if(own.wins.length)return [{color:attacker,move:own.wins[0],wins:true}];
+  if(left===0||opponent.wins.length>1)return null;
+  const moves=[...own.forks].sort((a,b)=>b[1].size-a[1].size||a[0]-b[0]);
+  for(const [move] of moves){
+   if(opponent.wins.length&&move!==opponent.wins[0])continue;
+   if(budget.remaining<=0)return null;
+   budget.remaining--;
+   const next=b.slice();next[move]=attacker;
+   if(threats(next,defender).wins.length)continue;
+   const targets=threats(next,attacker).wins;
+   if(targets.length>1)return [{color:attacker,move,unanswerableWinningPoints:targets}];
+   if(targets.length!==1)continue;
+   const block=targets[0];next[block]=defender;
+   const continuation=search(next,left-1);
+   if(continuation)return [{color:attacker,move},{color:defender,move:block,forcedBlock:true},...continuation];
+  }
+  return null;
+ }
+ const line=search(board,depth);
+ return {status:line?'PROVEN_FORCED_WIN':'UNKNOWN_WITHIN_BUDGET',line:line?.map(step=>({...step,move:coordinate(step.move),...(step.unanswerableWinningPoints?{unanswerableWinningPoints:step.unanswerableWinningPoints.map(coordinate)}:{})}))||[]};
+}
+function extendedContext(board,index){
+ const facts=tacticalContext(board,index),next=board.slice();next[index]=2;
+ if(facts.outcome==='WHITE_WINS_NOW')return facts;
+ const budget={remaining:24};
+ facts.blackContinuousFour=forcingLine(next,1,{budget});
+ // WHITE cannot take a free turn: BLACK must have a uniquely forced reply first.
+ if(!facts.blackImmediateWinningMoves.length&&facts.whiteImmediateWinningMoves.length>=2){
+  facts.whiteForcedWin={status:'PROVEN_FORCED_WIN',winningPoints:facts.whiteImmediateWinningMoves};
+ }else if(!facts.blackImmediateWinningMoves.length&&facts.whiteImmediateWinningMoves.length===1){
+  const block=threats(next,2).wins[0];next[block]=1;
+  facts.whiteAfterForcedBlackBlock={blackMustBlockAt:coordinate(block),...forcingLine(next,2,{budget})};
+ }
+ return facts;
+}
 export function requestFor(history){
  const p=position(history);if(p.winner||p.draw||history.length%2!==1)throw new Error('当前不是 Jev 的回合。');
  const moves=candidates(p.board);
- const criteria=Object.fromEntries(moves.map(m=>[String(m.index),{move:`Place WHITE at ${m.coordinate}`,whiteAfterMove:m.attack,blackIfPlacedHere:m.defense,consequences:tacticalContext(p.board,m.index)}]));
- return {model:'jev-latest',state:{analysisScope:'Exact five-cell winning windows, BLACK immediate replies and BLACK replies creating at least two distinct winning points, with WHITE immediate counter-wins checked. Not a full minimax search. Never interpret NO_FORCED_LOSS_FOUND as guaranteed safety.',currentBlackWinningMoves:threats(p.board,1).wins.map(coordinate),currentWhiteWinningMoves:threats(p.board,2).wins.map(coordinate),rules:'Freestyle Gomoku, 15x15. Five or more consecutive stones horizontally, vertically or diagonally wins. No forbidden moves. Black moves first. You are WHITE (O), opponent is BLACK (X).',board:p.board.reduce((rows,v,i)=>{if(i%15===0)rows.push('');rows[rows.length-1]+=['.','X','O'][v];return rows;},[]),coordinates:'Rows 1 to 15 top to bottom, columns A to O left to right; . empty, X black, O white.',history:history.map((i,n)=>`${n%2?'O':'X'}:${coordinate(i)}`)},questions:{move:{type:'choice',instructions:'Choose the best legal WHITE move from the supplied candidates to win this Gomoku game. Use the board and candidate tactical features. Prefer winning immediately. Otherwise block an immediate BLACK win if possible. Read consequences for EVERY candidate: they describe the actual position AFTER WHITE places there, unlike blackIfPlacedHere which is only a hypothetical feature. Priority: WHITE_WINS_NOW; otherwise avoid BLACK_WINS_NEXT; then avoid BLACK_CAN_FORCE_WIN_IN_TWO_MOVES whenever any candidate avoids these proven losses. Developing your own three or four is not worth allowing an earlier forced loss. Use explicit reply coordinates and turn order. Only after checking tactical consequences, compare attack, defense and development. If every candidate loses, choose the best resistance without treating it as safe. The rank fields are heuristic hints, not probabilities. Return one candidate choice.',criteria}}};
+ const criteria=Object.fromEntries(moves.map(m=>[String(m.index),{move:`Place WHITE at ${m.coordinate}`,whiteAfterMove:m.attack,blackIfPlacedHere:m.defense,consequences:extendedContext(p.board,m.index)}]));
+ return {model:'jev-latest',state:{analysisScope:'Each candidate also includes bounded continuous-four proofs: up to three forcing attacks plus the final win, 24 search units per candidate. UNKNOWN_WITHIN_BUDGET never proves safety. Exact five-cell winning windows, BLACK immediate replies and BLACK replies creating at least two distinct winning points, with WHITE immediate counter-wins checked. Not a full minimax search. Never interpret NO_FORCED_LOSS_FOUND as guaranteed safety.',currentBlackWinningMoves:threats(p.board,1).wins.map(coordinate),currentWhiteWinningMoves:threats(p.board,2).wins.map(coordinate),rules:'Freestyle Gomoku, 15x15. Five or more consecutive stones horizontally, vertically or diagonally wins. No forbidden moves. Black moves first. You are WHITE (O), opponent is BLACK (X).',board:p.board.reduce((rows,v,i)=>{if(i%15===0)rows.push('');rows[rows.length-1]+=['.','X','O'][v];return rows;},[]),coordinates:'Rows 1 to 15 top to bottom, columns A to O left to right; . empty, X black, O white.',history:history.map((i,n)=>`${n%2?'O':'X'}:${coordinate(i)}`)},questions:{move:{type:'choice',instructions:'Choose the best legal WHITE move from the supplied candidates to win this Gomoku game. Use the board and candidate tactical features. Prefer winning immediately. Otherwise block an immediate BLACK win if possible. Read consequences for EVERY candidate: they describe the actual position AFTER WHITE places there, unlike blackIfPlacedHere which is only a hypothetical feature. Priority: WHITE_WINS_NOW; otherwise avoid BLACK_WINS_NEXT; then avoid BLACK_CAN_FORCE_WIN_IN_TWO_MOVES whenever any candidate avoids these proven losses. Developing your own three or four is not worth allowing an earlier forced loss. Use explicit reply coordinates and turn order. Then inspect blackContinuousFour: PROVEN_FORCED_WIN is a losing candidate even if the short-horizon outcome found no loss. Avoid it whenever alternatives exist. Prefer whiteForcedWin or whiteAfterForcedBlackBlock with PROVEN_FORCED_WIN when BLACK has no earlier win. Follow each line in turn order: forcedBlock is the only defense, unanswerableWinningPoints are distinct winning squares. UNKNOWN_WITHIN_BUDGET is not safety. Only after these checks compare development. If every candidate loses, choose the best resistance without treating it as safe. The rank fields are heuristic hints, not probabilities. Return one candidate choice.',criteria}}};
 }
 export function readMove(data,request){
  const answer=data?.answers?.move;const opts=request.questions.move.criteria;

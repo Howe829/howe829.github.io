@@ -81,3 +81,32 @@ test('winning-window scan agrees with independent simulated winning moves',async
   }
  }
 });
+
+test('continuous-four proofs include forced defense and a later double threat, in both colors and all rotations',async()=>{
+ const {forcingLine}=await import('./game.mjs');
+ const parse=s=>(Number(s.slice(1))-1)*15+s.charCodeAt(0)-65;
+ const wins=(b,color)=>b.flatMap((v,i)=>{if(v)return [];b[i]=color;const yes=winningLine(b,i).length;b[i]=0;return yes?[i]:[];});
+ for(const color of [1,2])for(let rotation=0;rotation<4;rotation++){
+  const rotate=i=>{let r=Math.floor(i/15),c=i%15;for(let j=0;j<rotation;j++)[r,c]=[c,14-r];return r*15+c;};
+  const board=Array(225).fill(0);[105,106,107,76,92].map(rotate).forEach(i=>board[i]=color);
+  const original=board.slice(),proof=forcingLine(board,color,{budget:{remaining:200}});
+  assert.equal(proof.status,'PROVEN_FORCED_WIN');assert.ok(proof.line.some(x=>x.forcedBlock));assert.deepEqual(board,original);
+  for(const step of proof.line){
+   const i=parse(step.move);assert.equal(board[i],0);
+   if(step.forcedBlock)assert.deepEqual(wins(board,color),[i]);
+   board[i]=step.color;
+   if(step.color===color){assert.equal(wins(board,3-color).length,0);if(step.unanswerableWinningPoints)assert.ok(wins(board,color).length>=2);}
+  }
+ }
+});
+test('proof search does not claim victory when defender can win first or budget is exhausted',async()=>{
+ const {forcingLine}=await import('./game.mjs');const board=Array(225).fill(0);
+ [105,106,107,76,92].forEach(i=>board[i]=1);[15,16,17,18].forEach(i=>board[i]=2);
+ assert.equal(forcingLine(board,1).status,'UNKNOWN_WITHIN_BUDGET');
+ assert.equal(forcingLine(board,1,{budget:{remaining:0}}).status,'UNKNOWN_WITHIN_BUDGET');
+});
+test('enriched context never replaces the legal move Jev actually selected',()=>{
+ const req=requestFor([112,111,96,97,80]);const bad='83';
+ assert.equal(req.questions.move.criteria[bad].consequences.blackContinuousFour.status,'PROVEN_FORCED_WIN');
+ assert.equal(readMove({answers:{move:{type:'choice',choice:bad,confidence:.8}}},req).index,83);
+});
