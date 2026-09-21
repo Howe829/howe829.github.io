@@ -26,12 +26,13 @@ aside{display:flex;flex-direction:column;gap:20px;min-width:0}
 #result-dialog[data-winner="0"] .result-mark i:nth-child(even){background:#ede7da;border:1px solid #c8bca6}
 @media(max-width:800px){.layout{gap:22px}.players{min-height:72px}.record{min-height:160px}.panel{padding:20px}.panel h2{font-size:24px}.rules{padding:0 4px}#result-dialog{padding:30px 22px}#result-dialog h2{font-size:30px}}
 
-/* Size the desktop board by both window height and width, not the page width alone. */
+/* Keep the board dominant: a readable board beside a compact settings rail. */
 @media(min-width:801px){
- header,main{max-width:calc(clamp(320px,100dvh - 380px,560px) + 400px)}
- header{padding-top:16px;padding-bottom:16px}
- .intro{margin:8px 0 20px}
- h1{font-size:48px}
+ header,main{max-width:calc(clamp(460px,100dvh - 300px,580px) + 340px)}
+ .layout{grid-template-columns:minmax(0,1fr) 260px}
+ header{padding-top:12px;padding-bottom:12px}
+ .intro{margin:4px 0 16px}
+ h1{font-size:40px}
  .intro .eyebrow{margin-bottom:8px}
  .players{min-height:60px;padding:9px 16px;margin-bottom:12px}
  .board-wrap{padding:10px}
@@ -41,7 +42,13 @@ aside{display:flex;flex-direction:column;gap:20px;min-width:0}
  .record{flex:none;min-height:140px}
  aside{gap:16px}
  .panel{padding:18px}
- .panel h2{font-size:22px;margin-bottom:14px}
+ .panel h2{font-size:20px;margin-bottom:14px}
+ .panel .muted{font-size:12px;line-height:1.6;margin:10px 0}
+ .panel .key-link{font-size:13px;min-height:32px}
+ .panel input{padding:10px}
+ .panel .secondary{padding:8px 10px;font-size:14px}
+ #connection{font-size:11px}
+ .record{min-height:120px}
  .panel .eyebrow{margin-bottom:10px}
  .actions{margin-top:12px}
  #history{max-height:150px}
